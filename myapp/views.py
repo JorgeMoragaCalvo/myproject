@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Create your views here.
 def index(request):
-    return HttpResponse('Hello motherfuckers!')
+    return HttpResponse('Hello folks!')
 
 def paper_search_page(request):
     """
@@ -345,7 +345,7 @@ def fetch_arxiv_paper(paper_id, include_full_text=True):
         logger.error(f"Error fetching ArXiv paper {paper_id}: {str(e)}")
         return None
 
-def search_google_scholar(query, limit=20, author='', year=''):
+def search_google_scholar(query, limit=10, author='', year=''):
     """Search Google Scholar using the scholarly module"""
     try:
         results = []
