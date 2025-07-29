@@ -1,0 +1,130 @@
+{% extends 'papers/base.html' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Search Results</h2>
+    <a href="{% url 'paper_search_page' %}" class="btn btn-outline-primary">
+        <i class="fas fa-search me-2"></i>New Search
+    </a>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-8">
+        <div class="alert alert-info">
+            <strong>{{ total_results }}</strong> papers found for "<strong>{{ query }}</strong>"
+            in <strong>{{ source|title }}</strong>
+            {% if author %} by author "{{ author }}"{% endif %}
+            {% if year %} from year {{ year }}{% endif %}
+        </div>
+    </div>
+</div>
+
+{% if papers %}
+    <div class="row">
+        {% for paper in papers %}
+            <div class="col-12 mb-4">
+                <div class="card paper-card shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <h5 class="card-title">
+                                    <a href="{% url 'paper_detail_page' paper.id %}" class="text-decoration-none">
+                                        {{ paper.title }}
+                                    </a>
+                                </h5>
+
+                                {% if paper.authors %}
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-user me-1"></i>
+                                        {% for author in paper.authors %}
+                                            {{ author }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                {% endif %}
+
+                                {% if paper.abstract %}
+                                    <p class="card-text abstract-preview">{{ paper.abstract|truncatewords:30 }}</p>
+                                {% endif %}
+
+                                <div class="mt-2">
+                                    {% if paper.year %}
+                                        <span class="badge bg-secondary me-2">{{ paper.year }}</span>
+                                    {% endif %}
+                                    {% if paper.venue %}
+                                        <span class="badge bg-info me-2">{{ paper.venue }}</span>
+                                    {% endif %}
+                                    {% if paper.citation_count %}
+                                        <span class="badge bg-success me-2">{{ paper.citation_count }} citations</span>
+                                    {% endif %}
+                                    <span class="badge bg-primary">{{ paper.source|title }}</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 text-end">
+                                <div class="btn-group-vertical">
+                                    <a href="{% url 'paper_detail_page' paper.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View Details
+                                    </a>
+                                    {% if paper.pdf_url %}
+                                        <a href="{{ paper.pdf_url }}" target="_blank" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-file-pdf me-1"></i>PDF
+                                        </a>
+                                    {% endif %}
+                                    {% if paper.url %}
+                                        <a href="{{ paper.url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-external-link-alt me-1"></i>Source
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if papers.has_other_pages %}
+        <nav aria-label="Search results pagination">
+            <ul class="pagination justify-content-center">
+                {% if papers.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?query={{ query }}&source={{ source }}&author={{ author }}&year={{ year }}&page={{ papers.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                {% for num in papers.paginator.page_range %}
+                    {% if papers.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > papers.number|add:'-3' and num < papers.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?query={{ query }}&source={{ source }}&author={{ author }}&year={{ year }}&page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if papers.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?query={{ query }}&source={{ source }}&author={{ author }}&year={{ year }}&page={{ papers.next_page_number }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+{% else %}
+    <div class="text-center mt-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4>No papers found</h4>
+        <p class="text-muted">Try adjusting your search terms or filters.</p>
+        <a href="{% url 'paper_search_page' %}" class="btn btn-primary">
+            <i class="fas fa-search me-2"></i>Try Another Search
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

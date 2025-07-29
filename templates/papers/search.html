@@ -1,0 +1,85 @@
+{% extends 'papers/base.html' %}
+
+{% block title %}Search Academic Papers{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-search me-2"></i>Search Academic Papers</h4>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{% url 'paper_search_results' %}">
+                    <div class="mb-3">
+                        <label for="query" class="form-label">Search Query *</label>
+                        <input type="text" class="form-control" id="query" name="query"
+                               placeholder="Enter keywords, topics, or research areas..."
+                               value="{{ query }}" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="source" class="form-label">Source</label>
+                                <select class="form-select" id="source" name="source">
+                                    {% for value, label in sources %}
+                                        <option value="{{ value }}" {% if source == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="limit" class="form-label">Number of Results</label>
+                                <select class="form-select" id="limit" name="limit">
+                                    <option value="10" selected>10 papers</option>
+                                    <option value="20" >20 papers</option>
+                                    <option value="50">50 papers</option>
+                                    <option value="100">100 papers</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="author" class="form-label">Author (optional)</label>
+                                <input type="text" class="form-control" id="author" name="author"
+                                       placeholder="Author name..." value="{{ author }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="year" class="form-label">Year (optional)</label>
+                                <input type="number" class="form-control" id="year" name="year"
+                                       placeholder="e.g., 2023" min="1900" max="2025" value="{{ year }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search me-2"></i>Search Papers
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h5>Search Tips:</h5>
+            <ul class="list-unstyled">
+                <li><i class="fas fa-lightbulb text-warning me-2"></i>Use specific keywords for better results</li>
+                <li><i class="fas fa-lightbulb text-warning me-2"></i>ArXiv: Best for computer science, physics, mathematics</li>
+                <li><i class="fas fa-lightbulb text-warning me-2"></i>PubMed: Best for life sciences and biomedical literature</li>
+                <li><i class="fas fa-lightbulb text-warning me-2"></i>Semantic Scholar: Cross-disciplinary academic papers</li>
+                <li><i class="fas fa-lightbulb text-warning me-2"></i>Google Scholar: Cross-disciplinary academic papers</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

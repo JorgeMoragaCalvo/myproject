@@ -1,0 +1,233 @@
+{% extends 'papers/base.html' %}
+
+{% block title %}{{ paper.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Paper Details</h4>
+            </div>
+            <div class="card-body">
+                <h2 class="mb-3">{{ paper.title }}</h2>
+
+                {% if paper.authors %}
+                    <div class="mb-3">
+                        <h6><i class="fas fa-users me-2"></i>Authors:</h6>
+                        <p>
+                            {% for author in paper.authors %}
+                                <span class="badge bg-light text-dark me-1">{{ author }}</span>
+                            {% endfor %}
+                        </p>
+                    </div>
+                {% endif %}
+
+                {% if paper.abstract %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-align-left me-2"></i>Abstract:</h6>
+                        <p class="text-justify">{{ paper.abstract }}</p>
+                    </div>
+                {% endif %}
+
+                <div class="row mb-3">
+                    {% if paper.citation_count %}
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-quote-right me-2"></i>Citations:</strong> {{ paper.citation_count }}
+                        </div>
+                    {% endif %}
+                    {% if paper.reference_count %}
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-link me-2"></i>References:</strong> {{ paper.reference_count }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if paper.journal %}
+                    <div class="mb-3">
+                        <strong><i class="fas fa-journal-whills me-2"></i>Journal:</strong> {{ paper.journal }}
+                    </div>
+                {% endif %}
+
+                {% if paper.categories %}
+                    <div class="mb-3">
+                        <h6><i class="fas fa-tags me-2"></i>Categories:</h6>
+                        {% for category in paper.categories %}
+                            <span class="badge bg-secondary me-1">{{ category }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if paper.published %}
+                    <div class="mb-3">
+                        <strong><i class="fas fa-calendar-alt me-2"></i>Published:</strong> {{ paper.published }}
+                    </div>
+                {% endif %}
+
+                {% if paper.updated %}
+                    <div class="mb-3">
+                        <strong><i class="fas fa-sync me-2"></i>Updated:</strong> {{ paper.updated }}
+                    </div>
+                {% endif %}
+
+                {% if paper.pmid %}
+                    <div class="mb-3">
+                        <strong><i class="fas fa-hashtag me-2"></i>PubMed ID:</strong> {{ paper.pmid }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="fas fa-download me-2"></i>Access Paper</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if paper.pdf_url %}
+                        <a href="{{ paper.pdf_url }}" target="_blank" class="btn btn-danger">
+                            <i class="fas fa-file-pdf me-2"></i>Download PDF
+                        </a>
+                    {% endif %}
+
+                    {% if paper.url %}
+                        <a href="{{ paper.url }}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>View on {{ source|title }}
+                        </a>
+                    {% endif %}
+
+                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('{{ paper.id }}')">
+                        <i class="fas fa-copy me-2"></i>Copy Paper ID
+                    </button>
+
+                    <button class="btn btn-outline-info" onclick="shareViaAPI()">
+                        <i class="fas fa-share me-2"></i>Get API URL
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Paper Information</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>Source:</strong> {{ paper.source|title }}</li>
+                    <li><strong>Paper ID:</strong> <code>{{ paper.id }}</code></li>
+                    {% if paper.year %}
+                        <li><strong>Publication Year:</strong> {{ paper.year }}</li>
+                    {% endif %}
+                    {% if paper.citation_count %}
+                        <li><strong>Citation Impact:</strong>
+                            {% if paper.citation_count > 100 %}
+                                <span class="badge bg-success">High Impact</span>
+                            {% elif paper.citation_count > 20 %}
+                                <span class="badge bg-warning">Medium Impact</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Emerging</span>
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="javascript:history.back()" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Results
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- API Information Modal -->
+<div class="modal fade" id="apiModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">API Access</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>You can access this paper via API using:</p>
+                <div class="mb-3">
+                    <label class="form-label">API Endpoint:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="apiUrl" readonly
+                               value="{{ request.build_absolute_uri }}">
+                        <button class="btn btn-outline-secondary" onclick="copyToClipboard(document.getElementById('apiUrl').value)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Paper ID:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="paperId" readonly value="{{ paper.id }}">
+                        <button class="btn btn-outline-secondary" onclick="copyToClipboard('{{ paper.id }}')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <small class="text-muted">
+                    Replace the URL path with <code>/api/papers/{{ paper.id }}/</code> for JSON response.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check me-2"></i>Copied to clipboard!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+
+        // Remove toast after it's hidden
+        toast.addEventListener('hidden.bs.toast', function() {
+            document.body.removeChild(toast);
+        });
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Failed to copy to clipboard');
+    });
+}
+
+function shareViaAPI() {
+    const modal = new bootstrap.Modal(document.getElementById('apiModal'));
+    modal.show();
+}
+</script>
+{% endblock %}
+                    {% if paper.year %}
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-calendar me-2"></i>Year:</strong> {{ paper.year }}
+                        </div>
+                    {% endif %}
+                    {% if paper.venue %}
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-building me-2"></i>Venue:</strong> {{ paper.venue }}
+                        </div>
+                    {% endif %}
+                </div>
+
+<div class="row mb-3"></div>
